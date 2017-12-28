@@ -72,4 +72,10 @@
         android:text="获取列表"
         android:id="@+id/query"
         />
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/upload"
+        android:text="上传文件"
+        />
 </LinearLayout>

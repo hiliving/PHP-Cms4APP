@@ -51,6 +51,8 @@ public class MainActivity extends AppCompatActivity {
     Button bt;
     @BindView(R.id.query)
     Button query;
+    @BindView(R.id.upload)
+    Button upload;
     private String movieName;
     private String movieDesc;
     private String picUrl;
@@ -195,7 +197,13 @@ public class MainActivity extends AppCompatActivity {
         query.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                startActivity(new Intent(MainActivity.this,ListActivity.class));
+                startActivity(new Intent(MainActivity.this, ListActivity.class));
+            }
+        });
+        upload.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startActivity(new Intent(MainActivity.this,UploadActivity.class));
             }
         });
     }
@@ -248,48 +256,5 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    public void upload() {
 
-        File files = new File("文件路径");//截取有效路径
-        //添加应用拦截器
-        OkHttpClient client = new OkHttpClient.Builder()
-                //添加应用拦截器
-                .connectTimeout(35, TimeUnit.SECONDS)
-                .readTimeout(30, TimeUnit.SECONDS)
-                .retryOnConnectionFailure(true)
-                .build();
-        Retrofit retrofit = new Retrofit.Builder()
-                .client(client)
-                .baseUrl(UrlConfig.BaseUrl)
-                .addConverterFactory(GsonConverterFactory.create())
-                .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
-                .build();
-
-        final ApiService mApi = retrofit.create(ApiService.class);
-
-        RequestBody requestFile =
-                RequestBody.create(MediaType.parse("application/otcet-stream"), files);
-
-        MultipartBody.Part body =
-                MultipartBody.Part.createFormData("myfile", files.getName(), requestFile);
-
-        String descriptionString = "This is a description";
-        RequestBody description =
-                RequestBody.create(
-                        MediaType.parse("multipart/form-data"), descriptionString);
-        // 执行请求
-        Call<UploadBean> call = mApi.upload(description, body);
-
-        call.enqueue(new Callback<UploadBean>() {
-            @Override
-            public void onResponse(Call<UploadBean> call, Response<UploadBean> response) {
-                Log.d("AAAAAAAAAAAA", "上传成功");
-            }
-
-            @Override
-            public void onFailure(Call<UploadBean> call, Throwable t) {
-                Log.d("AAAAAAAAAAAA", "上传失败");
-            }
-        });
-    }
 }

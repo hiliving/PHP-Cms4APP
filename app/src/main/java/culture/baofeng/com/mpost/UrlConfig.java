@@ -5,5 +5,5 @@ package culture.baofeng.com.mpost;
  */
 
 public class UrlConfig {
-    public static final String BaseUrl = "http://192.168.85.236/php/cms";
+    public static final String BaseUrl = "http://192.168.85.236/";
 }

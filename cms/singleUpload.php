@@ -9,8 +9,10 @@
 */
 require_once('./php/cms/response.php');
 header("Content-Type:text/html;charset=utf-8");
-
-if (isset($_POST['submit'])) {
+/**
+ * 如果是web上传，可选择是否判断提交参数isset($_POST['submit'])，手机APP可以不做判断
+ */
+if (true) {
 
        
 
@@ -27,7 +29,6 @@ if (isset($_POST['submit'])) {
                 die('非法上传');
 
         }
-
         // 判断是否有错误,error = 0 表示上传成功
 
         if ($_FILES['upload']['error']!=0) {
@@ -35,7 +36,6 @@ if (isset($_POST['submit'])) {
                 die('上传出错,请重新上传');
 
         }
-
         // 判断文件大小 php最大是2M
 
         // 要求上传文件的大小小于2M
@@ -47,9 +47,7 @@ if (isset($_POST['submit'])) {
         if ($_FILES['upload']['size']>$file_max_size) {
 
                 die('文件过大');
-
         }
-
         // 获取文件扩展名
 
         $index = strrpos($_FILES['upload']['name'],'.');
@@ -70,15 +68,14 @@ if (isset($_POST['submit'])) {
 
         // 允许上传的文件类型
 
-        $arr_ext = ['image/jpeg','image/png'];
+        $arr_ext = ['image/gif','image/jpeg','image/jpg','image/png'];
 
         // 判断是否包括当前文件类型
 
-        if (!in_array($mime,$arr_ext)) {
+       /* if (!in_array($mime,$arr_ext)) {
 
                 die('上传的文件类型错误');
-
-        }
+        }*/
 
         //构建临时文件
 
@@ -99,7 +96,7 @@ if (isset($_POST['submit'])) {
         }
 		$path = 'http://192.168.85.236/'.substr($destination,2);
         
-		echo '文件上传成功，路径为：'.'http://192.168.85.236/'.substr($destination,2);
+		//echo '文件上传成功，路径为：'.'http://192.168.85.236/'.substr($destination,2);
 
         //echo '<div><img src='.$destination.'></div>';
 		$f = StripSlashes($path);
@@ -107,10 +104,7 @@ if (isset($_POST['submit'])) {
 				'path'=>$f
 			);
 		return Response::show(200, '首页数据获取成功', $arr);
-		
 
 }else{
-		return Response::show(400, '非法', $videos);
-        
-
+		/*return Response::show(400, '非法', $videos);*/
 }
