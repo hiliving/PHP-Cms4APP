@@ -9,8 +9,8 @@
 */
 require_once('./php/cms/response.php');
 header("Content-Type:text/html;charset=utf-8");
-
-if (isset($_POST['submit'])) {
+/*isset($_POST['submit'])*/
+if (true) {
         /*显示接收到的数据结构
                 echo '<pre>';
 
@@ -51,9 +51,9 @@ if (isset($_POST['submit'])) {
 
                 }
 
-                //判断文件上传大小
+                //判断文件上传大小.大于22M不予上传
 
-                $file_max_size = 2*1024*1024;
+                $file_max_size = 22*1024*1024;
 
                 if ($arr['size'][$key]>$file_max_size) {
 
@@ -75,15 +75,15 @@ if (isset($_POST['submit'])) {
 
                 //允许上传的文件类型
 
-                  $arr_ext = ['image/jpeg','image/png'];
+              /*    $arr_ext = ['image/jpeg','image/png'];*/
 
                   //判断是否包含当前文件类型
 
-                  if (!in_array($mime,$arr_ext)) {
+                /*  if (!in_array($mime,$arr_ext)) {
 
                           die('文件类型错误');
 
-                  }
+                  }*/
 
                   //构建临时文件
 
@@ -99,11 +99,13 @@ if (isset($_POST['submit'])) {
 
                   }
 
-                 $paths = 'http://192.168.85.236/'.substr($destination,2);
+                     $paths = 'http://192.168.85.236/'.substr($destination,2);
                     array_push($arrs,$paths);
+                /*
+                 * 这两行是为了看web端的效果，APP访问时不需要显示
                   echo '<div><img src='.$destination.' alt=""></div>';
 
-                 echo "<br/>";
+                 echo "<br/>";*/
         }
         $new = array(
             'path'=>$arrs

@@ -31,9 +31,9 @@ public interface ApiService {
     @Multipart
     @POST("singleUpload.php?format=json")
     Observable<UploadBean> upload(@Part MultipartBody.Part body);//单个文件上传
-    /*  @Multipart
-      @POST("mutiUpload.php?format=json")
-      Observable<UploadBean> uploadMuti(@PartMap Map<String,RequestBody> params);//多个文件上传,未测通过*/
+     @Multipart
+    @POST("mutiUpload.php?format=json")
+     Observable<MutiUpBean> uploadMuti(@PartMap Map<String,RequestBody> params);//多个文件上传,未测通过
     @GET("php/cms/getData.php")
     Observable<MovieInfo> getData(@Query("pagesize") int pagesize,@Query("page") int page);
 }

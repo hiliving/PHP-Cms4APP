@@ -4,7 +4,7 @@
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <TextView
-        android:layout_width="300dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="上传结果："
         app:layout_constraintTop_toTopOf="parent"
@@ -12,11 +12,21 @@
         app:layout_constraintLeft_toLeftOf="parent"
         android:id="@+id/upresult"
         />
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/rv"
+        android:layout_width="0dp"
+        app:layout_constraintLeft_toRightOf="@+id/upresult"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginTop="50dp"
+        android:layout_marginRight="10dp"
+        app:layout_constraintRight_toRightOf="parent"
+        android:layout_height="200dp"/>
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="上传单个文件"
         android:id="@+id/singleup"
+        app:layout_constraintVertical_bias="0.7"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toTopOf="parent"
@@ -29,6 +39,7 @@
         android:id="@+id/mutiup"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.7"
         app:layout_constraintLeft_toRightOf="@+id/singleup"
         app:layout_constraintRight_toRightOf="parent"
         />

@@ -2,12 +2,14 @@ package culture.baofeng.com.mpost;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.LinearLayoutCompat;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
-import android.util.Pair;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -15,31 +17,30 @@ import android.widget.TextView;
 import com.scrat.app.selectorlibrary.ImageSelector;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Observable;
 import java.util.concurrent.TimeUnit;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import culture.baofeng.com.mpost.adapter.RVAdapter;
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
-import okhttp3.Request;
 import okhttp3.RequestBody;
 import retrofit2.Call;
-import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
+import retrofit2.adapter.rxjava.Result;
 import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
-import rx.Scheduler;
 import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
+
+import static android.support.v7.widget.RecyclerView.HORIZONTAL;
 
 /**
  * Created by huangyong on 2017/12/27.
@@ -56,6 +57,10 @@ public class UploadActivity extends AppCompatActivity implements View.OnClickLis
     Button singleup;
     @BindView(R.id.mutiup)
     Button mutiup;
+    @BindView(R.id.rv)
+    RecyclerView rv;
+    private MutiUpBean.DataBean dataBean;
+    private RVAdapter rvAdapter;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -64,20 +69,25 @@ public class UploadActivity extends AppCompatActivity implements View.OnClickLis
         ButterKnife.bind(this);
         singleup.setOnClickListener(this);
         mutiup.setOnClickListener(this);
-
+        dataBean = new MutiUpBean.DataBean();
+        rvAdapter = new RVAdapter(this,dataBean);
+        rv.setLayoutManager(new GridLayoutManager(this,2, GridLayoutManager.HORIZONTAL,false));
+        rv.setAdapter(rvAdapter);
     }
-    public void uploadSingleFile(){
+
+    public void uploadSingleFile() {
 
         ImageSelector.show(this, REQUEST_CODE_SELECT_IMG);
     }
-    public void upLoadMutiFile(){
+
+    public void upLoadMutiFile() {
         ImageSelector.show(this, REQUEST_CODE_SELECT_MUTIIMG);
 
     }
 
     @Override
     public void onClick(View view) {
-        switch (view.getId()){
+        switch (view.getId()) {
             case R.id.singleup:
                 uploadSingleFile();
                 break;
@@ -89,15 +99,15 @@ public class UploadActivity extends AppCompatActivity implements View.OnClickLis
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-       if (resultCode== Activity.RESULT_OK&&requestCode==REQUEST_CODE_SELECT_IMG){
-           List<String> path = ImageSelector.getImagePaths(data);
-           Log.d("imgSelector", "paths: " + path.get(0));
-           upload(path.get(0));
-       }
-       if (resultCode== Activity.RESULT_OK&&requestCode==REQUEST_CODE_SELECT_MUTIIMG){
-           List<String> path = ImageSelector.getImagePaths(data);//得到uri，后面就是将uri转化成file的过程。
-           upload(path,true);
-       }
+        if (resultCode == Activity.RESULT_OK && requestCode == REQUEST_CODE_SELECT_IMG) {
+            List<String> path = ImageSelector.getImagePaths(data);
+            Log.d("imgSelector", "paths: " + path.get(0));
+            upload(path.get(0));
+        }
+        if (resultCode == Activity.RESULT_OK && requestCode == REQUEST_CODE_SELECT_MUTIIMG) {
+            List<String> path = ImageSelector.getImagePaths(data);//得到uri，后面就是将uri转化成file的过程。
+            upload(path, true);
+        }
     }
 
     private void upload(List<String> path, boolean b) {
@@ -106,6 +116,8 @@ public class UploadActivity extends AppCompatActivity implements View.OnClickLis
             File files = new File(path.get(i));
             filesList.add(files);
         }
+        rvAdapter.setFileData(path);
+        rvAdapter.notifyDataSetChanged();
         //添加应用拦截器
         OkHttpClient client = new OkHttpClient.Builder()
                 //添加应用拦截器
@@ -120,18 +132,45 @@ public class UploadActivity extends AppCompatActivity implements View.OnClickLis
                 .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
                 .build();
         Map<String, RequestBody> params = new HashMap<>();
-
-        for(int i = 0; i < filesList.size(); i++) {
+        //这里需要注意的是"upload[]\"; filename=\""这个必须按这种格式写，因为是多个文件，以数组识别
+        for (int i = 0; i < filesList.size(); i++) {
             RequestBody requestBody = RequestBody.create(MediaType.parse("multipart/form-data"), filesList.get(i));
-            params.put(filesList.get(i).getName(), requestBody);
+//            params.put("upload[]\"; filename=\""+filesList.get(i).getName(), requestBody);
+            final int tmp = i;
+            RetrofitCallback<Result> callback = new RetrofitCallback<Result>() {
+                @Override
+                public void onFailure(Call<Result> call, Throwable t) {
+
+                }
+
+                @Override
+                public void onSuccess(Call<Result> call, Response<Result> response) {
+                    Log.d("监听进度", "这是第" + tmp + "个文件,文件上传成功");
+                }
+
+                @Override
+                public void onLoading(final long total, final long progress) {
+                    //此处进行进度更新
+                    Log.d("监听进度", "这是第" + tmp + "个文件,文件总长" + total + "当前进度为" + progress);
+
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            rvAdapter.setProgress(tmp,progress/total*100.0f);
+                            rvAdapter.notifyDataSetChanged();
+                        }
+                    });
+                }
+            };
+            //通过该行代码将RequestBody转换成特定的FileRequestBody
+            FileRequestBody body = new FileRequestBody(requestBody, callback);
+            params.put("upload[]\"; filename=\"" + filesList.get(i).getName(), body);
         }
-
         final ApiService mApi = retrofit.create(ApiService.class);
-
         // 执行请求
         mApi.uploadMuti(params).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Subscriber<UploadBean>() {
+                .subscribe(new Subscriber<MutiUpBean>() {
                     @Override
                     public void onCompleted() {
 
@@ -139,20 +178,24 @@ public class UploadActivity extends AppCompatActivity implements View.OnClickLis
 
                     @Override
                     public void onError(Throwable e) {
-                        upresult.setText("上传失败"+e.getMessage()+e.getCause());
+                        upresult.setText("上传失败" + e.getMessage() + e.getCause());
                     }
 
                     @Override
-                    public void onNext(UploadBean uploadBean) {
+                    public void onNext(MutiUpBean uploadBean) {
                         upresult.setText("上传成功");
+                        for (int i = 0; i < uploadBean.getData().getPath().size(); i++) {
+                            Log.d("AAATTT", "文件路径为" + uploadBean.getData().getPath().get(i));
+                        }
                     }
                 });
     }
+
     public void upload(String path) {
 
         File files = new File(path);
-        if (files.exists()){
-            Log.d("AAAAAAAAAAAAAA","文件存在:"+files.getAbsolutePath());
+        if (files.exists()) {
+            Log.d("AAAAAAAAAAAAAA", "文件存在:" + files.getAbsolutePath());
         }
         //添加应用拦截器
         OkHttpClient client = new OkHttpClient.Builder()
@@ -186,7 +229,7 @@ public class UploadActivity extends AppCompatActivity implements View.OnClickLis
 
                     @Override
                     public void onError(Throwable e) {
-                        upresult.setText("上传失败"+e.getMessage()+e.getCause());
+                        upresult.setText("上传失败" + e.getMessage() + e.getCause());
                     }
 
                     @Override
