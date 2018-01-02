@@ -51,9 +51,9 @@ if (true) {
 
                 }
 
-                //判断文件上传大小.大于22M不予上传
+                //判断文件上传大小.大于122M不予上传
 
-                $file_max_size = 22*1024*1024;
+                $file_max_size = 122*1024*1024;
 
                 if ($arr['size'][$key]>$file_max_size) {
 

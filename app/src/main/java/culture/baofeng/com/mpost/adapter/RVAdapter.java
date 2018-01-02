@@ -27,6 +27,7 @@ public class RVAdapter extends RecyclerView.Adapter<RViewHolder> {
     private float progresss = 0;
     private int pos =0;
     private List<String> paths =new ArrayList<>();
+    private boolean finish = false;
 
     public RVAdapter(Context context, MutiUpBean.DataBean databean) {
         this.context = context;
@@ -42,12 +43,9 @@ public class RVAdapter extends RecyclerView.Adapter<RViewHolder> {
     @Override
     public void onBindViewHolder(RViewHolder holder, int position) {
         Glide.with(context).load(paths.get(position)).into(holder.rvpic);
-        if (pos==position){
-            holder.rvp.setProgress((int) progresss);
-            if (progresss==100){
-                holder.rvp.setVisibility(View.GONE);
-                holder.rvmsk.setVisibility(View.GONE);
-            }
+        if (finish){
+            holder.rvp.setVisibility(View.GONE);
+            holder.rvmsk.setVisibility(View.GONE);
         }
     }
 
@@ -56,14 +54,23 @@ public class RVAdapter extends RecyclerView.Adapter<RViewHolder> {
         return paths.size();
     }
 
+    @Override
+    public long getItemId(int position) {
+        return pos;
+    }
 
     public void setProgress(int tmp, float v) {
-        this.progresss = v;
         this.pos = tmp;
+        this.progresss = v;
     }
 
 
     public void setFileData(List<String> path) {
         this.paths = path;
+    }
+
+    public void setFinish() {
+        this.finish = true;
+        notifyDataSetChanged();
     }
 }

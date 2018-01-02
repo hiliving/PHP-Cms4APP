@@ -42,7 +42,7 @@ if (true) {
 
         // 2M转换为字节2*1024*1024
 
-        $file_max_size = 2*1024*1024;
+        $file_max_size = 122*1024*1024;
 
         if ($_FILES['upload']['size']>$file_max_size) {
 

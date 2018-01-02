@@ -27,7 +27,7 @@
         app:layout_constraintRight_toRightOf="parent"
         android:layout_marginLeft="4dp"
         android:layout_marginRight="4dp"
-        android:progress="20"
+        android:progress="0"
        />
 
 </android.support.constraint.ConstraintLayout>

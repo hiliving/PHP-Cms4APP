@@ -12,9 +12,13 @@ import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import com.scrat.app.selectorlibrary.ImageSelector;
+
+import com.donkingliang.imageselector.PreviewActivity;
+import com.donkingliang.imageselector.utils.ImageSelectorUtils;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -61,7 +65,7 @@ public class UploadActivity extends AppCompatActivity implements View.OnClickLis
     RecyclerView rv;
     private MutiUpBean.DataBean dataBean;
     private RVAdapter rvAdapter;
-
+    private static final int REQUEST_CODE = 0x00000011;
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -71,18 +75,31 @@ public class UploadActivity extends AppCompatActivity implements View.OnClickLis
         mutiup.setOnClickListener(this);
         dataBean = new MutiUpBean.DataBean();
         rvAdapter = new RVAdapter(this,dataBean);
-        rv.setLayoutManager(new GridLayoutManager(this,2, GridLayoutManager.HORIZONTAL,false));
+        rv.setLayoutManager(new GridLayoutManager(this,3));
+
         rv.setAdapter(rvAdapter);
     }
 
     public void uploadSingleFile() {
 
-        ImageSelector.show(this, REQUEST_CODE_SELECT_IMG);
+//        ImageSelector.show(this, REQUEST_CODE_SELECT_IMG);
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                ImageSelectorUtils.openPhoto(UploadActivity.this, REQUEST_CODE_SELECT_IMG, true, 0);
+            }
+        });
     }
 
     public void upLoadMutiFile() {
-        ImageSelector.show(this, REQUEST_CODE_SELECT_MUTIIMG);
+//        ImageSelector.show(this, REQUEST_CODE_SELECT_MUTIIMG);
 
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                ImageSelectorUtils.openPhoto(UploadActivity.this, REQUEST_CODE_SELECT_MUTIIMG, false, 9);
+            }
+        });
     }
 
     @Override
@@ -99,13 +116,18 @@ public class UploadActivity extends AppCompatActivity implements View.OnClickLis
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == Activity.RESULT_OK && requestCode == REQUEST_CODE_SELECT_IMG) {
-            List<String> path = ImageSelector.getImagePaths(data);
+            List<String> path =  data.getStringArrayListExtra(
+                    ImageSelectorUtils.SELECT_RESULT);
             Log.d("imgSelector", "paths: " + path.get(0));
             upload(path.get(0));
+
+         //   startActivity(new Intent(UploadActivity.this, PreviewActivity.class));
         }
         if (resultCode == Activity.RESULT_OK && requestCode == REQUEST_CODE_SELECT_MUTIIMG) {
-            List<String> path = ImageSelector.getImagePaths(data);//得到uri，后面就是将uri转化成file的过程。
+            List<String> path =  data.getStringArrayListExtra(
+                    ImageSelectorUtils.SELECT_RESULT);//得到uri，后面就是将uri转化成file的过程。
             upload(path, true);
         }
     }
@@ -151,15 +173,13 @@ public class UploadActivity extends AppCompatActivity implements View.OnClickLis
                 @Override
                 public void onLoading(final long total, final long progress) {
                     //此处进行进度更新
+                   // rvAdapter.setProgress(tmp,progress/total*100.0f);
                     Log.d("监听进度", "这是第" + tmp + "个文件,文件总长" + total + "当前进度为" + progress);
+                    ProgressBar rvp = rv.getChildAt(tmp).findViewById(R.id.rv_progress);
+                   // ImageView rvm = rv.getChildAt(tmp).findViewById(R.id.rv_mask);
 
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            rvAdapter.setProgress(tmp,progress/total*100.0f);
-                            rvAdapter.notifyDataSetChanged();
-                        }
-                    });
+                    rvp.setProgress((int) (progress/total*100));
+
                 }
             };
             //通过该行代码将RequestBody转换成特定的FileRequestBody
@@ -178,15 +198,16 @@ public class UploadActivity extends AppCompatActivity implements View.OnClickLis
 
                     @Override
                     public void onError(Throwable e) {
-                        upresult.setText("上传失败" + e.getMessage() + e.getCause());
+                        upresult.setText("上传失败"  + e.getCause());
+                        Log.d("AAATTT",  "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"+e.getStackTrace().toString());
+                         e.printStackTrace();
+                        Log.d("AAATTT", "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
                     }
 
                     @Override
                     public void onNext(MutiUpBean uploadBean) {
                         upresult.setText("上传成功");
-                        for (int i = 0; i < uploadBean.getData().getPath().size(); i++) {
-                            Log.d("AAATTT", "文件路径为" + uploadBean.getData().getPath().get(i));
-                        }
+                        rvAdapter.setFileData(uploadBean.getData().getPath());
                     }
                 });
     }
